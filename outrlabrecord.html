@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OUTR Cover Page Generator</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=EB+Garamond:wght@500;600;700&family=Lora:wght@500;600;700&family=Merriweather:wght@400;700;900&family=Libre+Baskerville:wght@400;700&family=DM+Serif+Display&family=Montserrat:wght@400;600;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600;700&family=Oswald:wght@400;600&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<link rel="icon" type="image/png" href="pngfavicon.png" />
+<link rel="apple-touch-icon" href="pngfavicon.png" />
+<link rel="shortcut icon" href="pngfavicon.png" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+/* ============ BASE ============ */
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+  background:#F7F4EC;color:#221D17;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+}
+button{font-family:inherit;}
+.hidden{display:none !important;}
+
+/* ============ TOP BAR ============ */
+.topbar{position:sticky;top:0;z-index:40;background:#FFFDF9;border-bottom:3px solid #8B3A1A;}
+.topbar-inner{max-width:1440px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:11px;}
+.brand-mark{width:36px;height:36px;border-radius:50%;border:2px solid #8B3A1A;color:#8B3A1A;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:14px;flex:0 0 auto;}
+.brand h1{margin:0;font-family:'Playfair Display',serif;font-size:16.5px;line-height:1.2;}
+.brand p{margin:2px 0 0;font-size:11px;color:#7A7260;}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:8px;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;border:1px solid transparent;background:#fff;transition:background .15s,border-color .15s;white-space:nowrap;}
+.btn-ghost{border-color:#DED4BC;color:#221D17;}
+.btn-ghost:hover{background:#F0E9D8;}
+.btn-primary{background:#8B3A1A;color:#fff;}
+.btn-primary:hover{background:#6B2C12;}
+.btn:disabled{opacity:.55;cursor:not-allowed;}
+
+/* ============ LAYOUT ============ */
+.layout{max-width:1440px;width:100%;margin:0 auto;padding:22px 18px 40px;display:grid;grid-template-columns:minmax(320px,430px) minmax(0,1fr);gap:26px;align-items:start;flex:1;}
+@media (max-width:1023px){
+  .layout{grid-template-columns:1fr;}
+  .preview-col{order:-1;}
+}
+
+.card{background:#FFFDF9;border:1px solid #E4DCC9;border-radius:12px;padding:20px;}
+.card + .card{margin-top:16px;}
+.card-title{margin:0 0 14px;font-family:'Playfair Display',serif;font-size:15px;}
+.sub-head{margin:18px 0 9px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8A806C;}
+.hint{margin:-4px 0 10px;font-size:11px;color:#8A806C;line-height:1.5;}
+
+/* ============ FORM ============ */
+.field{margin-bottom:13px;}
+.field-label,.field label{display:block;font-size:11.5px;font-weight:600;color:#56503F;margin-bottom:5px;}
+.input{width:100%;padding:8px 11px;border:1px solid #DED4BC;border-radius:7px;font-size:13px;font-family:inherit;color:#221D17;background:#fff;transition:border-color .15s,box-shadow .15s;}
+.input::placeholder{color:#B0A98F;font-weight:400;}
+.input:focus{outline:none;border-color:#8B3A1A;box-shadow:0 0 0 3px rgba(139,58,26,.12);}
+.input.invalid{border-color:#C0392B;box-shadow:0 0 0 3px rgba(192,57,43,.12);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.check-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#56503F;margin-bottom:14px;cursor:pointer;}
+.check-row input{width:15px;height:15px;accent-color:#8B3A1A;}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;margin-bottom:8px;}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:0 0 auto;border:1.5px solid #D8CFB8;color:#8A806C;background:#fff;cursor:pointer;transition:all .15s;}
+.step-dot.active{background:#8B3A1A;border-color:#8B3A1A;color:#fff;}
+.step-dot.done{background:#F0E6D6;border-color:#8B3A1A;color:#8B3A1A;}
+.step-line{flex:1;height:1.5px;background:#E4DCC9;}
+.step-line.done{background:#8B3A1A;}
+#stepCaption{font-size:11.5px;color:#7A7260;margin:0 0 18px;}
+.wizard-nav{display:flex;align-items:center;justify-content:space-between;padding-top:18px;margin-top:18px;border-top:1px solid #E4DCC9;}
+
+/* Roster */
+.roster-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.roster-row .roster-name{flex:2;}
+.roster-row .roster-regd{flex:1;}
+.icon-btn{border:none;background:transparent;color:#C0392B;cursor:pointer;font-size:18px;line-height:1;padding:3px 7px;border-radius:6px;}
+.icon-btn:hover{background:#FBEAE7;}
+
+/* ============ STYLE CONTROLS ============ */
+.preset-row{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{border:1px solid #DED4BC;background:#fff;border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer;color:#56503F;transition:background .15s;}
+.chip:hover{background:#F0E9D8;}
+.chip.chip-maroon{border-color:#8B3A1A;color:#8B3A1A;}
+.chip.chip-maroon:hover{background:#F0E6D6;}
+
+.color-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.color-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #EDE6D6;border-radius:8px;padding:6px 9px;font-size:11.5px;font-weight:600;color:#56503F;background:#fff;cursor:pointer;}
+.color-item input[type=color]{width:34px;height:24px;padding:0;border:1px solid #DED4BC;border-radius:5px;background:none;cursor:pointer;}
+
+/* Font selector grid */
+.font-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.font-item{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;color:#56503F;line-height:1.2;}
+.font-item select{
+  width:100%;padding:6px 8px;border:1px solid #DED4BC;border-radius:6px;
+  font-size:11.5px;background:#fff;font-family:inherit;color:#221D17;
+  cursor:pointer;transition:border-color .15s,box-shadow .15s;
+}
+.font-item select:focus{outline:none;border-color:#8B3A1A;box-shadow:0 0 0 3px rgba(139,58,26,.12);}
+.font-item select optgroup{font-weight:700;color:#8A806C;font-style:normal;}
+
+/* Range sliders */
+.range-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;margin-bottom:11px;}
+.range-item span{font-size:11.5px;font-weight:600;color:#56503F;}
+.range-item output{font-size:11px;color:#8A806C;font-variant-numeric:tabular-nums;}
+.range-item input[type=range]{grid-column:1 / -1;width:100%;accent-color:#8B3A1A;margin:0;}
+
+/* ============ PREVIEW ============ */
+.preview-col{display:flex;flex-direction:column;align-items:center;min-width:0;}
+.preview-bar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.preview-bar .label{font-size:11.5px;font-weight:700;color:#7A7260;letter-spacing:.4px;}
+.zoom{display:flex;align-items:center;gap:8px;font-size:12px;color:#8A806C;}
+.zoom input[type=range]{width:130px;accent-color:#8B3A1A;}
+.note{margin:0 0 12px;padding:9px 12px;border-radius:8px;background:#FDF3E7;border:1px solid #EBD3B0;color:#8B3A1A;font-size:11.5px;line-height:1.5;}
+
+.stage-wrap{width:100%;display:flex;justify-content:center;overflow:hidden;}
+.stage{width:794px;height:1123px;flex:0 0 auto;transform-origin:top center;}
+
+/* ============ THE A4 PAGE ============ */
+.a4-page{
+  /* ---- colour variables (overwritten by JS style controls) ---- */
+  --c-bg:#FFFDFA; --c-univ:#8B3A1A; --c-loc:#1D4ED8; --c-school:#2E7D32;
+  --c-title:#1D4ED8; --c-subtitle:#1D4ED8; --c-party:#0B5FA5; --c-detail:#111827;
+  --c-border:#000000;
+
+  /* ---- font-family variables ---- */
+  --ff-univ:'Cinzel', serif;
+  --ff-loc:'Inter', system-ui, sans-serif;
+  --ff-school:'Inter', system-ui, sans-serif;
+  --ff-title:'Playfair Display', serif;
+  --ff-subtitle:'Inter', system-ui, sans-serif;
+  --ff-meta:'Cormorant Garamond', Georgia, serif;
+  --ff-party:'Inter', system-ui, sans-serif;
+  --ff-detail:'Cormorant Garamond', Georgia, serif;
+
+  /* ---- font-size variables ---- */
+  --fs-univ:26px; --fs-loc:15px; --fs-school:15px; --fs-logo:160px;
+  --fs-title:20px; --fs-subtitle:16px; --fs-meta:13px;
+  --fs-party:15px; --fs-detail:13px;
+
+  width:794px;height:1123px;background:var(--c-bg);padding:38px;
+  display:flex;position:relative;color:#111827;
+  box-shadow:0 18px 40px -12px rgba(34,29,23,.28),0 2px 8px rgba(34,29,23,.08);
+}
+.frame-outer{flex:1;border:4px solid var(--c-border);padding:9px;display:flex;}
+.frame-inner{flex:1;border:2px solid var(--c-border);padding:30px 34px 34px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;}
+
+.page-head{width:100%;}
+.p-univ{margin:0;font-family:var(--ff-univ);font-weight:700;font-size:var(--fs-univ);color:var(--c-univ);letter-spacing:.5px;line-height:1.22;}
+.p-loc{margin:8px 0 0;font-family:var(--ff-loc);font-weight:700;font-size:var(--fs-loc);color:var(--c-loc);letter-spacing:2.5px;}
+.p-school{margin:5px 0 0;font-family:var(--ff-school);font-weight:700;font-size:var(--fs-school);color:var(--c-school);letter-spacing:.7px;}
+
+.logo-wrap{display:flex;align-items:center;justify-content:center;margin:6px 0;}
+.p-logo{width:var(--fs-logo);height:var(--fs-logo);object-fit:contain;}
+
+.title-block{width:100%;}
+.p-title{margin:0;font-family:var(--ff-title);font-weight:700;font-size:var(--fs-title);color:var(--c-title);text-transform:uppercase;letter-spacing:.5px;line-height:1.25;}
+.p-subtitle{margin:7px 0 0;font-family:var(--ff-subtitle);font-weight:700;font-size:var(--fs-subtitle);color:var(--c-subtitle);text-transform:uppercase;letter-spacing:.8px;}
+.p-meta{margin:7px 0 0;font-family:var(--ff-meta);font-weight:600;font-size:var(--fs-meta);color:var(--c-detail);}
+
+.parties{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:left;margin-top:22px;}
+.party-head{margin:0 0 9px;font-family:var(--ff-party);font-weight:700;font-size:var(--fs-party);color:var(--c-party);}
+.p-detail{font-family:var(--ff-detail);font-size:var(--fs-detail);line-height:1.75;color:var(--c-detail);font-weight:700;}
+.p-detail p{margin:0;}
+.p-detail .val{font-weight:500;}
+
+/* ============ SITE FOOTER ============ */
+.site-footer{
+  background:#FFFDF9;
+  border-top:3px solid #8B3A1A;
+  padding:16px 18px;
+  text-align:center;
+  font-size:12px;
+  color:#7A7260;
+}
+.site-footer p{margin:0;line-height:1.6;}
+.site-footer .credit-link{
+  color:#8B3A1A;
+  font-weight:700;
+  text-decoration:none;
+  border-bottom:1px dashed #8B3A1A;
+  transition:color .15s,border-color .15s;
+}
+.site-footer .credit-link:hover{
+  color:#6B2C12;
+  border-bottom-style:solid;
+}
+.site-footer .heart{color:#C0392B;}
+.site-footer .sep{margin:0 6px;color:#D8CFB8;}
+
+/* ============ PRINT ============ */
+@page{size:A4;margin:0;}
+@media print{
+  html,body{background:#fff !important;display:block !important;}
+  .topbar,.form-col,.preview-bar,.no-print,.site-footer{display:none !important;}
+  .layout{display:block;padding:0;margin:0;max-width:none;gap:0;}
+  .preview-col{display:block;}
+  .stage-wrap{display:block !important;overflow:visible !important;height:auto !important;width:auto !important;}
+  .stage{transform:none !important;width:auto !important;height:auto !important;}
+  .a4-page{box-shadow:none !important;width:210mm;height:296mm;margin:0;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">O</div>
+      <div>
+        <h1>OUTR Cover Page Generator</h1>
+        <p>Build a print-ready assignment cover sheet</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="printBtn" class="btn btn-ghost" type="button">Print</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Reset</button>
+      <button id="pngBtn" class="btn btn-ghost" type="button">PNG</button>
+      <button id="pdfBtn" class="btn btn-primary" type="button">Download PDF</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ================= FORM COLUMN ================= -->
+  <div class="form-col">
+
+    <div class="card">
+      <div class="stepper">
+        <div class="step-dot active" id="dot1">1</div><div class="step-line" id="line1"></div>
+        <div class="step-dot" id="dot2">2</div><div class="step-line" id="line2"></div>
+        <div class="step-dot" id="dot3">3</div><div class="step-line" id="line3"></div>
+        <div class="step-dot" id="dot4">4</div>
+      </div>
+      <p id="stepCaption">Step 1 of 4 — University header &amp; logo</p>
+
+      <form id="coverForm" autocomplete="off" onsubmit="return false;">
+
+        <!-- STEP 1 -->
+        <div class="step-panel" id="panel1">
+          <div class="field">
+            <label for="univName">University name</label>
+            <input id="univName" class="input" type="text" value="ODISHA UNIVERSITY OF TECHNOLOGY AND RESEARCH">
+          </div>
+          <div class="field">
+            <label for="univLocation">Location</label>
+            <input id="univLocation" class="input" type="text" value="BHUBANESWAR">
+          </div>
+          <div class="field">
+            <label for="univSchool">School / department</label>
+            <input id="univSchool" class="input" type="text" value="SCHOOL OF ELECTRICAL SCIENCES">
+          </div>
+
+          <h3 class="sub-head">University logo</h3>
+          <div class="field">
+            <label for="logoFile">Upload a file (PNG / JPG / WEBP)</label>
+            <input id="logoFile" class="input" type="file" accept="image/png,image/jpeg,image/webp">
+          </div>
+          <div class="field">
+            <label for="logoUrl">…or paste an image link</label>
+            <input id="logoUrl" class="input" type="text" placeholder="https://example.com/outr-logo.png">
+          </div>
+          <button type="button" id="clearLogo" class="btn btn-ghost" style="padding:6px 11px">Remove logo</button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-panel hidden" id="panel2">
+          <div class="field">
+            <label for="labRecordTitle">Main record title</label>
+            <input id="labRecordTitle" class="input" type="text" value="POWER ELECTRONICS LAB RECORD">
+          </div>
+          <div class="field">
+            <label for="labSubTitle">Subtitle</label>
+            <input id="labSubTitle" class="input" type="text" value="ASSIGNMENT RECORD">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="subjectName">Subject (optional)</label>
+              <input id="subjectName" class="input" type="text" placeholder="Power Electronics">
+            </div>
+            <div class="field">
+              <label for="subjectCode">Subject code (optional)</label>
+              <input id="subjectCode" class="input" type="text" placeholder="EE-301">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="academicSession">Academic session</label>
+              <input id="academicSession" class="input" type="text" placeholder="2025-26">
+            </div>
+            <div class="field">
+              <label for="submissionDate">Date of submission</label>
+              <input id="submissionDate" class="input" type="date">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-panel hidden" id="panel3">
+          <div class="field">
+            <label for="facultyName">Faculty name</label>
+            <input id="facultyName" class="input" type="text" placeholder="Dr. Professor Name">
+          </div>
+          <div class="field">
+            <label for="facultyDesignation">Designation</label>
+            <input id="facultyDesignation" class="input" type="text" placeholder="Assistant Professor">
+          </div>
+          <div class="field">
+            <label for="facultyDept">Department</label>
+            <input id="facultyDept" class="input" type="text" placeholder="Electrical Engineering">
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-panel hidden" id="panel4">
+          <label class="check-row" for="groupToggle">
+            <input type="checkbox" id="groupToggle">
+            This is a group submission (multiple students)
+          </label>
+
+          <div id="singleStudent">
+            <div class="field">
+              <label for="studentName">Student name</label>
+              <input id="studentName" class="input" type="text" placeholder="Student Name">
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="regdNo">Regd. no.</label>
+                <input id="regdNo" class="input" type="text" placeholder="Registration Number">
+              </div>
+              <div class="field">
+                <label for="semester">Semester</label>
+                <input id="semester" class="input" type="text" placeholder="e.g. 1st">
+              </div>
+            </div>
+          </div>
+
+          <div id="groupStudent" class="hidden">
+            <span class="field-label">Group members</span>
+            <div id="rosterList"></div>
+            <button type="button" id="addRow" class="btn btn-ghost" style="padding:6px 11px;margin:4px 0 14px">+ Add student</button>
+            <div class="field">
+              <label for="semesterGroup">Semester</label>
+              <input id="semesterGroup" class="input" type="text" placeholder="e.g. 1st">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="branch">Department / branch</label>
+            <input id="branch" class="input" type="text" value="POWER SYSTEM ENGINEERING">
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button type="button" id="prevBtn" class="btn btn-ghost" style="visibility:hidden">← Previous</button>
+          <button type="button" id="nextBtn" class="btn btn-primary">Next →</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ============ STYLE CARD ============ -->
+    <div class="card">
+      <h2 class="card-title">Style &amp; Typography</h2>
+
+      <h3 class="sub-head" style="margin-top:0">Colour themes</h3>
+      <div class="preset-row">
+        <button type="button" class="chip" data-preset="classic">Classic</button>
+        <button type="button" class="chip" data-preset="mono">Monochrome</button>
+        <button type="button" class="chip" data-preset="royal">Royal</button>
+        <button type="button" class="chip" data-preset="forest">Forest</button>
+        <button type="button" class="chip chip-maroon" id="resetStyle">Reset all style</button>
+      </div>
+
+      <h3 class="sub-head">Colours</h3>
+      <div class="color-grid">
+        <label class="color-item">University <input type="color" data-cssvar="--c-univ" value="#8B3A1A"></label>
+        <label class="color-item">Location <input type="color" data-cssvar="--c-loc" value="#1D4ED8"></label>
+        <label class="color-item">School <input type="color" data-cssvar="--c-school" value="#2E7D32"></label>
+        <label class="color-item">Title <input type="color" data-cssvar="--c-title" value="#1D4ED8"></label>
+        <label class="color-item">Subtitle <input type="color" data-cssvar="--c-subtitle" value="#1D4ED8"></label>
+        <label class="color-item">Party headings <input type="color" data-cssvar="--c-party" value="#0B5FA5"></label>
+        <label class="color-item">Body text <input type="color" data-cssvar="--c-detail" value="#111827"></label>
+        <label class="color-item">Frame border <input type="color" data-cssvar="--c-border" value="#000000"></label>
+        <label class="color-item">Page background <input type="color" data-cssvar="--c-bg" value="#FFFDFA"></label>
+      </div>
+
+      <h3 class="sub-head">Font presets</h3>
+      <div class="preset-row">
+        <button type="button" class="chip" data-font-preset="classic">Classic</button>
+        <button type="button" class="chip" data-font-preset="modern">Modern</button>
+        <button type="button" class="chip" data-font-preset="academic">Academic</button>
+        <button type="button" class="chip" data-font-preset="elegant">Elegant</button>
+      </div>
+
+      <h3 class="sub-head">Fonts</h3>
+      <p class="hint">Pick a typeface for each element. All fonts are loaded from Google Fonts.</p>
+      <div class="font-grid">
+        <label class="font-item">University name
+          <select data-cssvar="--ff-univ" data-default="'Cinzel', serif"></select>
+        </label>
+        <label class="font-item">Location
+          <select data-cssvar="--ff-loc" data-default="'Inter', system-ui, sans-serif"></select>
+        </label>
+        <label class="font-item">School / dept.
+          <select data-cssvar="--ff-school" data-default="'Inter', system-ui, sans-serif"></select>
+        </label>
+        <label class="font-item">Record title
+          <select data-cssvar="--ff-title" data-default="'Playfair Display', serif"></select>
+        </label>
+        <label class="font-item">Subtitle
+          <select data-cssvar="--ff-subtitle" data-default="'Inter', system-ui, sans-serif"></select>
+        </label>
+        <label class="font-item">Subject / session
+          <select data-cssvar="--ff-meta" data-default="'Cormorant Garamond', Georgia, serif"></select>
+        </label>
+        <label class="font-item">“Submitted to / by”
+          <select data-cssvar="--ff-party" data-default="'Inter', system-ui, sans-serif"></select>
+        </label>
+        <label class="font-item">Detail lines
+          <select data-cssvar="--ff-detail" data-default="'Cormorant Garamond', Georgia, serif"></select>
+        </label>
+      </div>
+
+      <h3 class="sub-head">Text sizes</h3>
+      <div class="range-item"><span>University name</span><output></output><input type="range" data-cssvar="--fs-univ" data-unit="px" min="14" max="44" value="26"></div>
+      <div class="range-item"><span>Location</span><output></output><input type="range" data-cssvar="--fs-loc" data-unit="px" min="10" max="26" value="15"></div>
+      <div class="range-item"><span>School / department</span><output></output><input type="range" data-cssvar="--fs-school" data-unit="px" min="10" max="26" value="15"></div>
+      <div class="range-item"><span>Logo size</span><output></output><input type="range" data-cssvar="--fs-logo" data-unit="px" min="60" max="280" value="160"></div>
+      <div class="range-item"><span>Record title</span><output></output><input type="range" data-cssvar="--fs-title" data-unit="px" min="12" max="36" value="20"></div>
+      <div class="range-item"><span>Subtitle</span><output></output><input type="range" data-cssvar="--fs-subtitle" data-unit="px" min="10" max="28" value="16"></div>
+      <div class="range-item"><span>Subject / session line</span><output></output><input type="range" data-cssvar="--fs-meta" data-unit="px" min="9" max="22" value="13"></div>
+      <div class="range-item"><span>“Submitted to / by” headings</span><output></output><input type="range" data-cssvar="--fs-party" data-unit="px" min="10" max="26" value="15"></div>
+      <div class="range-item"><span>Detail lines</span><output></output><input type="range" data-cssvar="--fs-detail" data-unit="px" min="9" max="22" value="13"></div>
+    </div>
+  </div>
+
+  <!-- ================= PREVIEW COLUMN ================= -->
+  <div class="preview-col">
+    <div class="preview-bar">
+      <span class="label">LIVE PREVIEW</span>
+      <div class="zoom">
+        <span>−</span>
+        <input type="range" id="zoom" min="30" max="100" value="100">
+        <span>+</span>
+      </div>
+    </div>
+
+    <p id="note" class="note hidden no-print"></p>
+
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage" id="stage">
+        <div class="a4-page" id="page">
+          <div class="frame-outer">
+            <div class="frame-inner">
+
+              <div class="page-head">
+                <h1 id="p-univ" class="p-univ">UNIVERSITY NAME</h1>
+                <div id="p-loc" class="p-loc">CITY</div>
+                <div id="p-school" class="p-school">SCHOOL / DEPARTMENT</div>
+              </div>
+
+              <div class="logo-wrap">
+                <img id="p-logo" class="p-logo" alt="University logo">
+              </div>
+
+              <div class="title-block">
+                <h2 id="p-title" class="p-title">RECORD TITLE</h2>
+                <h3 id="p-subtitle" class="p-subtitle">SUBTITLE</h3>
+                <p id="p-subject" class="p-meta"></p>
+                <p id="p-session" class="p-meta"></p>
+              </div>
+
+              <div class="parties">
+                <div>
+                  <h3 class="party-head">Submitted to :-</h3>
+                  <div id="p-to" class="p-detail"></div>
+                </div>
+                <div>
+                  <h3 class="party-head">Submitted by :-</h3>
+                  <div id="p-by" class="p-detail"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ================= SITE FOOTER (CREDIT) ================= -->
+<footer class="site-footer no-print">
+  <p>
+    Built with <span class="heart">♥</span> for OUTR students
+    <span class="sep">•</span>
+    Crafted by
+    <a class="credit-link"
+       href="https://www.linkedin.com/in/YOUR-LINKEDIN-PROFILE"
+       target="_blank"
+       rel="noopener noreferrer">
+      Your Name Here
+    </a>
+    <span class="sep">•</span>
+    <a class="credit-link"
+       href="https://www.linkedin.com/in/YOUR-LINKEDIN-PROFILE"
+       target="_blank"
+       rel="noopener noreferrer">
+      Connect on LinkedIn
+    </a>
+  </p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  /* =========================================================
+     PLACEHOLDER LOGO (inline SVG — no network needed)
+     ========================================================= */
+  const PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">' +
+    '<circle cx="100" cy="100" r="95" fill="#FFFDF9" stroke="#8B3A1A" stroke-width="4"/>' +
+    '<circle cx="100" cy="100" r="80" fill="none" stroke="#8B3A1A" stroke-width="1.5"/>' +
+    '<text x="100" y="123" font-family="Georgia,serif" font-size="64" font-weight="700" fill="#8B3A1A" text-anchor="middle">O</text>' +
+    '</svg>'
+  );
+
+  const page       = $('page');
+  const stage      = $('stage');
+  const stageWrap  = $('stageWrap');
+  const logoImg    = $('p-logo');
+
+  /* =========================================================
+     SMALL HELPERS
+     ========================================================= */
+  const val = id => { const el = $(id); return el ? el.value.trim() : ''; };
+
+  function makeLine(label, value, fallback) {
+    const p = document.createElement('p');
+    if (label) {
+      const b = document.createElement('strong');
+      b.textContent = label + ' ';
+      p.appendChild(b);
+    }
+    const s = document.createElement('span');
+    s.className = 'val';
+    s.textContent = value || fallback || '';
+    p.appendChild(s);
+    return p;
+  }
+
+  function showNote(msg) {
+    const n = $('note');
+    n.textContent = msg;
+    n.classList.remove('hidden');
+  }
+  function hideNote() { $('note').classList.add('hidden'); }
+
+  /* =========================================================
+     LIVE RENDER
+     ========================================================= */
+  function render() {
+    /* --- header --- */
+    $('p-univ').textContent   = val('univName')     || 'UNIVERSITY NAME';
+    $('p-loc').textContent    = val('univLocation') || 'CITY';
+    $('p-school').textContent = val('univSchool')   || 'SCHOOL / DEPARTMENT';
+
+    /* --- titles --- */
+    $('p-title').textContent    = val('labRecordTitle') || 'RECORD TITLE';
+    $('p-subtitle').textContent = val('labSubTitle')    || 'SUBTITLE';
+
+    /* --- subject line --- */
+    const sName = val('subjectName');
+    const sCode = val('subjectCode');
+    const subjEl = $('p-subject');
+    if (!sName && !sCode) {
+      subjEl.style.display = 'none';
+    } else {
+      subjEl.style.display = '';
+      subjEl.textContent = [sName, sCode ? '(' + sCode + ')' : ''].filter(Boolean).join(' ');
+    }
+
+    /* --- session / date line --- */
+    const sessEl = $('p-session');
+    const parts = [];
+    const sess = val('academicSession');
+    const dateVal = $('submissionDate').value;
+    if (sess) parts.push('Session: ' + sess);
+    if (dateVal) {
+      const d = new Date(dateVal + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        parts.push('Date: ' + d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+      }
+    }
+    if (!parts.length) {
+      sessEl.style.display = 'none';
+    } else {
+      sessEl.style.display = '';
+      sessEl.textContent = parts.join('   |   ');
+    }
+
+    /* --- submitted to --- */
+    $('p-to').replaceChildren(
+      makeLine('NAME:',        val('facultyName'),        '_________________'),
+      makeLine('DESIGNATION:', val('facultyDesignation'), '__________'),
+      makeLine('DEPT:',        val('facultyDept'),        '__________________')
+    );
+
+    /* --- submitted by --- */
+    const frag   = document.createDocumentFragment();
+    const branch = val('branch') || '__________________';
+
+    if ($('groupToggle').checked) {
+      const rows = Array.from(document.querySelectorAll('#rosterList .roster-row'));
+      if (!rows.length) {
+        frag.appendChild(makeLine('', 'Add group members', ''));
+      } else {
+        rows.forEach(r => {
+          const n = r.querySelector('.roster-name').value.trim() || '_________________';
+          const g = r.querySelector('.roster-regd').value.trim();
+          frag.appendChild(makeLine('', n + (g ? '  (' + g + ')' : ''), ''));
+        });
+      }
+      frag.appendChild(makeLine('DEPT:', branch, ''));
+      frag.appendChild(makeLine('SEM:',  val('semesterGroup') || '__', ''));
+    } else {
+      frag.appendChild(makeLine('NAME:',    val('studentName'), '_________________'));
+      frag.appendChild(makeLine('REGD NO:', val('regdNo'),      '________'));
+      frag.appendChild(makeLine('DEPT:',    branch, ''));
+      frag.appendChild(makeLine('SEM:',     val('semester') || '__', ''));
+    }
+    $('p-by').replaceChildren(frag);
+  }
+
+  /* =========================================================
+     WIZARD
+     ========================================================= */
+  let step = 1;
+  const TOTAL = 4;
+  const CAPTIONS = [
+    'Step 1 of 4 — University header & logo',
+    'Step 2 of 4 — Document titles',
+    'Step 3 of 4 — Submitted to',
+    'Step 4 of 4 — Submitted by'
+  ];
+
+  function updateWizard() {
+    for (let i = 1; i <= TOTAL; i++) {
+      $('panel' + i).classList.toggle('hidden', i !== step);
+      const dot = $('dot' + i);
+      dot.classList.toggle('active', i === step);
+      dot.classList.toggle('done', i < step);
+      if (i < TOTAL) $('line' + i).classList.toggle('done', i < step);
+    }
+    $('stepCaption').textContent = CAPTIONS[step - 1];
+    $('prevBtn').style.visibility = step === 1 ? 'hidden' : 'visible';
+    $('nextBtn').textContent = step === TOTAL ? 'Done ✓' : 'Next →';
+  }
+
+  $('nextBtn').addEventListener('click', () => { if (step < TOTAL) { step++; updateWizard(); } });
+  $('prevBtn').addEventListener('click', () => { if (step > 1)     { step--; updateWizard(); } });
+  for (let i = 1; i <= TOTAL; i++) {
+    $('dot' + i).addEventListener('click', () => { step = i; updateWizard(); });
+  }
+
+  /* =========================================================
+     ROSTER (group mode)
+     ========================================================= */
+  function addRosterRow(name, regd) {
+    const row = document.createElement('div');
+    row.className = 'roster-row';
+
+    const n = document.createElement('input');
+    n.type = 'text'; n.className = 'input roster-name'; n.placeholder = 'Student Name'; n.value = name || '';
+
+    const r = document.createElement('input');
+    r.type = 'text'; r.className = 'input roster-regd'; r.placeholder = 'Regd no.'; r.value = regd || '';
+
+    const del = document.createElement('button');
+    del.type = 'button'; del.className = 'icon-btn'; del.title = 'Remove'; del.innerHTML = '&times;';
+    del.addEventListener('click', () => { row.remove(); render(); });
+
+    [n, r].forEach(inp => inp.addEventListener('input', render));
+
+    row.append(n, r, del);
+    $('rosterList').appendChild(row);
+  }
+
+  $('addRow').addEventListener('click', () => addRosterRow());
+
+  $('groupToggle').addEventListener('change', e => {
+    $('singleStudent').classList.toggle('hidden', e.target.checked);
+    $('groupStudent').classList.toggle('hidden', !e.target.checked);
+    render();
+  });
+
+  /* =========================================================
+     LOGO
+     ========================================================= */
+  function setLogo(src) {
+    logoImg.onerror = function () {
+      logoImg.onerror = null;
+      logoImg.src = PLACEHOLDER;
+    };
+    logoImg.src = src || PLACEHOLDER;
+  }
+  setLogo(PLACEHOLDER);
+
+  $('logoFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      setLogo(ev.target.result);
+      $('logoUrl').value = '';
+      hideNote();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  let urlTimer = null;
+  $('logoUrl').addEventListener('input', e => {
+    clearTimeout(urlTimer);
+    const url = e.target.value.trim();
+    if (!url) { setLogo(PLACEHOLDER); return; }
+    urlTimer = setTimeout(() => {
+      const probe = new Image();
+      probe.crossOrigin = 'anonymous';
+      probe.onload = () => { setLogo(url); hideNote(); };
+      probe.onerror = () => {
+        setLogo(PLACEHOLDER);
+        showNote('That image link could not be loaded (or it blocks cross-origin use). Please upload the logo as a file instead — it exports reliably.');
+      };
+      probe.src = url;
+    }, 450);
+  });
+
+  $('clearLogo').addEventListener('click', () => {
+    setLogo(PLACEHOLDER);
+    $('logoFile').value = '';
+    $('logoUrl').value = '';
+    hideNote();
+  });
+
+  /* =========================================================
+     FONT OPTIONS  →  populate every <select data-cssvar="--ff-*">
+     ========================================================= */
+  const FONT_OPTIONS = {
+    'Serif': [
+      ['Cinzel',              "'Cinzel', serif"],
+      ['Playfair Display',    "'Playfair Display', serif"],
+      ['Cormorant Garamond',  "'Cormorant Garamond', Georgia, serif"],
+      ['EB Garamond',         "'EB Garamond', Georgia, serif"],
+      ['Lora',                "'Lora', Georgia, serif"],
+      ['Merriweather',        "'Merriweather', Georgia, serif"],
+      ['Libre Baskerville',   "'Libre Baskerville', Georgia, serif"],
+      ['DM Serif Display',    "'DM Serif Display', Georgia, serif"],
+      ['Georgia',             "Georgia, 'Times New Roman', serif"],
+      ['Times New Roman',     "'Times New Roman', Times, serif"]
+    ],
+    'Sans-serif': [
+      ['Inter',               "'Inter', system-ui, sans-serif"],
+      ['Montserrat',          "'Montserrat', sans-serif"],
+      ['Poppins',             "'Poppins', sans-serif"],
+      ['Raleway',             "'Raleway', sans-serif"],
+      ['Oswald',              "'Oswald', sans-serif"],
+      ['Josefin Sans',        "'Josefin Sans', sans-serif"],
+      ['Arial',               "Arial, Helvetica, sans-serif"],
+      ['Helvetica',           "Helvetica, Arial, sans-serif"]
+    ]
+  };
+
+  document.querySelectorAll('select[data-cssvar^="--ff-"]').forEach(sel => {
+    Object.keys(FONT_OPTIONS).forEach(groupName => {
+      const og = document.createElement('optgroup');
+      og.label = groupName;
+      FONT_OPTIONS[groupName].forEach(([label, value]) => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label;
+        og.appendChild(opt);
+      });
+      sel.appendChild(og);
+    });
+    // Apply the default that was declared on the element
+    if (sel.dataset.default) sel.value = sel.dataset.default;
+    // If the declared default couldn't be matched, fall back to the first option
+    if (!sel.value) sel.selectedIndex = 0;
+  });
+
+  /* =========================================================
+     STYLE CONTROLS  (font families + font sizes + colours)
+     ========================================================= */
+  const DEFAULTS = {};
+
+  document.querySelectorAll('[data-cssvar]').forEach(el => {
+    DEFAULTS[el.dataset.cssvar] = el.value;
+
+    const rangeItem = el.closest('.range-item');
+    const out = rangeItem ? rangeItem.querySelector('output') : null;
+
+    const apply = () => {
+      const unit = el.dataset.unit || '';
+      page.style.setProperty(el.dataset.cssvar, el.value + unit);
+      if (out) out.textContent = el.value + unit;
+    };
+
+    el.addEventListener('input', apply);
+    el.addEventListener('change', apply);   /* extra safety for <select> */
+    apply();
+  });
+
+  /* ------- Colour presets ------- */
+  const COLOR_PRESETS = {
+    classic: { '--c-univ':'#8B3A1A','--c-loc':'#1D4ED8','--c-school':'#2E7D32','--c-title':'#1D4ED8','--c-subtitle':'#1D4ED8','--c-party':'#0B5FA5','--c-detail':'#111827','--c-border':'#000000','--c-bg':'#FFFDFA' },
+    mono:    { '--c-univ':'#111111','--c-loc':'#333333','--c-school':'#333333','--c-title':'#111111','--c-subtitle':'#333333','--c-party':'#111111','--c-detail':'#111111','--c-border':'#111111','--c-bg':'#FFFFFF' },
+    royal:   { '--c-univ':'#1E3A8A','--c-loc':'#1D4ED8','--c-school':'#1E40AF','--c-title':'#1E3A8A','--c-subtitle':'#1D4ED8','--c-party':'#1E3A8A','--c-detail':'#0F172A','--c-border':'#1E3A8A','--c-bg':'#FFFFFF' },
+    forest:  { '--c-univ':'#14532D','--c-loc':'#15803D','--c-school':'#166534','--c-title':'#14532D','--c-subtitle':'#15803D','--c-party':'#166534','--c-detail':'#1C1917','--c-border':'#14532D','--c-bg':'#FBFDF9' }
+  };
+
+  /* ------- Font presets ------- */
+  const FONT_PRESETS = {
+    classic: {
+      '--ff-univ':     "'Cinzel', serif",
+      '--ff-loc':      "'Inter', system-ui, sans-serif",
+      '--ff-school':   "'Inter', system-ui, sans-serif",
+      '--ff-title':    "'Playfair Display', serif",
+      '--ff-subtitle': "'Inter', system-ui, sans-serif",
+      '--ff-meta':     "'Cormorant Garamond', Georgia, serif",
+      '--ff-party':    "'Inter', system-ui, sans-serif",
+      '--ff-detail':   "'Cormorant Garamond', Georgia, serif"
+    },
+    modern: {
+      '--ff-univ':     "'Montserrat', sans-serif",
+      '--ff-loc':      "'Montserrat', sans-serif",
+      '--ff-school':   "'Montserrat', sans-serif",
+      '--ff-title':    "'Poppins', sans-serif",
+      '--ff-subtitle': "'Poppins', sans-serif",
+      '--ff-meta':     "'Inter', system-ui, sans-serif",
+      '--ff-party':    "'Montserrat', sans-serif",
+      '--ff-detail':   "'Inter', system-ui, sans-serif"
+    },
+    academic: {
+      '--ff-univ':     "'EB Garamond', Georgia, serif",
+      '--ff-loc':      "'EB Garamond', Georgia, serif",
+      '--ff-school':   "'EB Garamond', Georgia, serif",
+      '--ff-title':    "'Libre Baskerville', Georgia, serif",
+      '--ff-subtitle': "'EB Garamond', Georgia, serif",
+      '--ff-meta':     "'Lora', Georgia, serif",
+      '--ff-party':    "'Libre Baskerville', Georgia, serif",
+      '--ff-detail':   "'Lora', Georgia, serif"
+    },
+    elegant: {
+      '--ff-univ':     "'Playfair Display', serif",
+      '--ff-loc':      "'Playfair Display', serif",
+      '--ff-school':   "'Playfair Display', serif",
+      '--ff-title':    "'DM Serif Display', Georgia, serif",
+      '--ff-subtitle': "'Playfair Display', serif",
+      '--ff-meta':     "'Cormorant Garamond', Georgia, serif",
+      '--ff-party':    "'Playfair Display', serif",
+      '--ff-detail':   "'Cormorant Garamond', Georgia, serif"
+    }
+  };
+
+  function setVar(key, value) {
+    const el = document.querySelector('[data-cssvar="' + key + '"]');
+    if (!el) return;
+    el.value = value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = COLOR_PRESETS[btn.dataset.preset];
+      if (!preset) return;
+      Object.keys(preset).forEach(k => setVar(k, preset[k]));
+    });
+  });
+
+  document.querySelectorAll('[data-font-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = FONT_PRESETS[btn.dataset.fontPreset];
+      if (!preset) return;
+      Object.keys(preset).forEach(k => setVar(k, preset[k]));
+    });
+  });
+
+  $('resetStyle').addEventListener('click', () => {
+    Object.keys(DEFAULTS).forEach(k => setVar(k, DEFAULTS[k]));
+  });
+
+  /* =========================================================
+     ZOOM
+     ========================================================= */
+  let zoomPct = 100;
+
+  function applyZoom(pct) {
+    zoomPct = Math.min(100, Math.max(30, pct));
+    const s = zoomPct / 100;
+    stage.style.transform = 'scale(' + s + ')';
+    stageWrap.style.height = Math.round(1123 * s) + 'px';
+  }
+
+  $('zoom').addEventListener('input', e => applyZoom(parseInt(e.target.value, 10)));
+
+  function fitZoom() {
+    const avail = stageWrap.clientWidth || stageWrap.parentElement.clientWidth || 794;
+    const fit = Math.floor(((avail - 8) / 794) * 100);
+    const target = Math.min(100, Math.max(30, fit));
+    if (zoomPct > target) {
+      $('zoom').value = target;
+      applyZoom(target);
+    } else {
+      applyZoom(zoomPct);
+    }
+  }
+
+  window.addEventListener('resize', fitZoom);
+
+  /* =========================================================
+     EXPORT
+     ========================================================= */
+  async function capture() {
+    if (typeof html2canvas !== 'function') {
+      throw new Error('The export library (html2canvas) could not load. Check your internet connection and reload the page.');
+    }
+
+    const prevTransform = stage.style.transform;
+    const prevHeight    = stageWrap.style.height;
+    const prevOverflow  = stageWrap.style.overflow;
+    const prevScrollY   = window.scrollY;
+
+    stage.style.transform  = 'none';
+    stageWrap.style.height = 'auto';
+    stageWrap.style.overflow = 'visible';
+    window.scrollTo(0, 0);
+
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    try {
+      return await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: 794,
+        height: 1123
+      });
+    } finally {
+      stage.style.transform     = prevTransform;
+      stageWrap.style.height    = prevHeight;
+      stageWrap.style.overflow  = prevOverflow;
+      window.scrollTo(0, prevScrollY);
+    }
+  }
+
+  function fileBase() {
+    const who  = $('groupToggle').checked ? 'Group' : (val('studentName') || 'Student');
+    const what = val('subjectName') || val('labRecordTitle') || 'Cover';
+    return ('OUTR_Cover_' + who + '_' + what).replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').slice(0, 90);
+  }
+
+  function withBusy(btn, label, fn) {
+    return async function () {
+      const original = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = label;
+      hideNote();
+      try {
+        await fn();
+      } catch (err) {
+        console.error(err);
+        showNote(err && err.message ? err.message : 'Something went wrong during export.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    };
+  }
+
+  /* ---- PDF ---- */
+  $('pdfBtn').addEventListener('click', withBusy($('pdfBtn'), 'Generating…', async () => {
+    const canvas = await capture();
+
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      throw new Error('The PDF library (jsPDF) could not load. Check your internet connection and reload the page.');
+    }
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const w = pdf.internal.pageSize.getWidth();
+    const h = pdf.internal.pageSize.getHeight();
+
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, w, h);
+    pdf.save(fileBase() + '.pdf');
+  }));
+
+  /* ---- PNG ---- */
+  $('pngBtn').addEventListener('click', withBusy($('pngBtn'), 'Generating…', async () => {
+    const canvas = await capture();
+    const link = document.createElement('a');
+    link.download = fileBase() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }));
+
+  /* ---- Print ---- */
+  $('printBtn').addEventListener('click', () => window.print());
+
+  /* =========================================================
+     RESET
+     ========================================================= */
+  $('resetBtn').addEventListener('click', () => {
+    $('coverForm').reset();
+
+    setLogo(PLACEHOLDER);
+    $('logoFile').value = '';
+    $('logoUrl').value  = '';
+
+    $('groupToggle').checked = false;
+    $('singleStudent').classList.remove('hidden');
+    $('groupStudent').classList.add('hidden');
+    $('rosterList').replaceChildren();
+    addRosterRow('', '');
+
+    step = 1;
+    updateWizard();
+
+    Object.keys(DEFAULTS).forEach(k => setVar(k, DEFAULTS[k]));
+
+    $('zoom').value = 100;
+    applyZoom(100);
+    fitZoom();
+
+    hideNote();
+    render();
+  });
+
+  /* =========================================================
+     WIRE UP
+     ========================================================= */
+  $('coverForm').addEventListener('input', render);
+  $('coverForm').addEventListener('change', render);
+
+  /* =========================================================
+     BOOT
+     ========================================================= */
+  addRosterRow('', '');
+  updateWizard();
+  render();
+
+  requestAnimationFrame(() => requestAnimationFrame(fitZoom));
+
+})();
+</script>
+</body>
+</html>
